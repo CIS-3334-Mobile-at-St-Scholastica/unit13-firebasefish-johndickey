@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     List<Fish> fishList;
     int positionSelected;
     FishFirebaseData fishDataSource;
+    DatabaseReference FishRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +40,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupFirebaseDataChange() {
-        // ToDo - Add code here to update the listview with data from Firebase
+        fishDataSource = new FishFirebaseData();
+        FishRef = fishDataSource.open();
+        FishRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("CIS3334", "Starting onDataChange()");        // debugging log
+                fishList = fishDataSource.getAllFish(dataSnapshot);
+                // Instantiate a custom adapter for displaying each fish
+                fishAdapter = new FishAdapter(MainActivity.this, android.R.layout.simple_list_item_single_choice, fishList);
+                // Apply the adapter to the list
+                listViewFish.setAdapter(fishAdapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("CIS3334", "onCancelled: ");
+            }
+        });
     }
+    // ToDo - Add code here to update the listview with data from Firebase
+
 
     private void setupListView() {
         listViewFish = (ListView) findViewById(R.id.ListViewFish);
@@ -49,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 positionSelected = position;
                 Log.d("MAIN", "Fish selected at position " + positionSelected);
+
             }
         });
     }
@@ -65,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void setupDetailButton() {
         // Set up the button to display details on one fish using a seperate activity
@@ -88,9 +110,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MAIN", "onClick for Delete");
                 Log.d("MAIN", "Delete at position " + positionSelected);
                 fishDataSource.deleteFish(fishList.get(positionSelected));
-                fishAdapter.remove( fishList.get(positionSelected) );
+                fishAdapter.remove(fishList.get(positionSelected));
                 fishAdapter.notifyDataSetChanged();
             }
         });
+
     }
 }
+
+
+
